@@ -1,0 +1,4 @@
+# QIIME2 metadata (example; add columns as needed)
+sample-id	group	forward_adapter	reverse_adapter
+S1	Case	CCTACGGGNGGCWGCAG	GACTACHVGGGTATCTAATCC
+S2	Control	CCTACGGGNGGCWGCAG	GACTACHVGGGTATCTAATCC

@@ -1,0 +1,81 @@
+# deepbio-metagenomics-with-qiime2.yml
+# Unified Conda environment including:
+# - QIIME 2 Amplicon 2024.10 (via qiime2/label/r2024.10)
+# - Shotgun ARG & WGS-AMR toolchain
+# - Shared QC & light plotting libs
+#
+# If solving fails on some systems (common with large envs), install QIIME 2
+# in its own env per docs and keep this file without the qiime2-amplicon line.
+# See: https://docs.qiime2.org/2024.10/install/native/
+
+# Install Mamba 
+# In your base conda environment:
+# conda install -n base -c conda-forge mamba
+# mamba --version
+
+# Create and activate the environment
+# mamba env create -f deepbio-metagenomics-with-qiime2.yml
+# conda activate deepbio-metagenomics
+# qiime --help   
+
+name: deepbio-metagenomics
+channels:
+  - qiime2/label/r2024.10
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+dependencies:
+  - python=3.10
+  - pip
+  # QIIME 2 (Amplicon distribution metapackage)
+  - qiime2-amplicon=2024.10.*
+  # Workflow
+  - snakemake-minimal=7.32
+  # QC & utilities
+  - fastp
+  - fastqc
+  - multiqc
+  - pigz
+  - seqtk
+  - seqkit
+  - bedtools
+  - bbmap
+  # Mappers & core bio
+  - bwa-mem2
+  - bowtie2
+  - minimap2
+  - samtools
+  - blast
+  # Shotgun profiling & assembly
+  - kraken2
+  - bracken
+  - diamond
+  - megahit
+  - prodigal
+  - coverm
+  - krona
+  # WGS assembly/annotation/AMR
+  - shovill
+  - spades
+  - unicycler
+  - flye
+  - racon
+  - pilon
+  - bakta
+  - prokka
+  - mlst
+  - abricate
+  - amrfinderplus
+  - rgi
+  - mob-suite
+  - snippy
+  - iqtree
+  - mash
+  - quast
+  - hmmer
+  - checkm-genome
+  # Light downstream analysis
+  - pandas
+  - numpy
+  - matplotlib

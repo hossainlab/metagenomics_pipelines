@@ -1,0 +1,7 @@
+name: base-qc
+channels: [conda-forge, bioconda, defaults]
+dependencies:
+  - fastp
+  - fastqc
+  - multiqc
+  - pigz

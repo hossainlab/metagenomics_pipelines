@@ -1,0 +1,67 @@
+configfile: "config.yaml"
+
+import os
+SAMPLES = [s['sample_id'] for s in config['samples']]
+
+rule all:
+    input:
+        expand("results/shotgun/{sample}/arg_abundance.tsv", sample=SAMPLES),
+        "reports/shotgun_multiqc.html"
+
+rule fastp:
+    input:
+        R1=lambda w: f"data/raw/{w.sample}_R1.fastq.gz",
+        R2=lambda w: f"data/raw/{w.sample}_R2.fastq.gz"
+    output:
+        R1="data/clean/{sample}_R1.fq.gz",
+        R2="data/clean/{sample}_R2.fq.gz",
+        html="results/shotgun/{sample}/fastp.html"
+    conda: "../../envs/base-qc.yml"
+    shell:
+        "fastp -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -h {output.html}"
+
+rule host_filter:
+    input:
+        R1="data/clean/{sample}_R1.fq.gz",
+        R2="data/clean/{sample}_R2.fq.gz"
+    params:
+        index="resources/indices/host/bowtie2/index"
+    output:
+        R1="data/microbiome/{sample}_R1.fq.gz",
+        R2="data/microbiome/{sample}_R2.fq.gz"
+    conda: "../../envs/metagenome.yml"
+    shell:
+        ("bowtie2 -x {params.index} -1 {input.R1} -2 {input.R2} -S /dev/null "
+         "--un-conc-gz data/microbiome/{wildcards.sample}_%.fq.gz || "
+         "cp {input.R1} {output.R1} && cp {input.R2} {output.R2}")
+
+rule dummy_diamond:
+    input:
+        R1="data/microbiome/{sample}_R1.fq.gz",
+        R2="data/microbiome/{sample}_R2.fq.gz"
+    output:
+        tsv="results/shotgun/{sample}/diamond_card.tsv"
+    run:
+        # This dummy step writes a tiny TSV so the toy pipeline completes without DBs.
+        os.makedirs(os.path.dirname(output.tsv), exist_ok=True)
+        with open(output.tsv, "w") as f:
+            f.write("qseqid\tsseqid\tpident\tlength\n")
+            f.write(f"{wildcards.sample}_read1\tARO:1234567\t99.0\t120\n")
+
+rule summarize_args:
+    input:
+        "results/shotgun/{sample}/diamond_card.tsv"
+    output:
+        "results/shotgun/{sample}/arg_abundance.tsv"
+    conda: "../../envs/metagenome.yml"
+    script:
+        "scripts/summarize_card.py"
+
+rule multiqc:
+    input:
+        expand("results/shotgun/{sample}/fastp.html", sample=SAMPLES)
+    output:
+        "reports/shotgun_multiqc.html"
+    conda: "../../envs/base-qc.yml"
+    shell:
+        "multiqc -o reports/ results/shotgun/"

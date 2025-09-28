@@ -1,0 +1,29 @@
+silva:
+  version: "138.1"
+  qiime_classifier: "/abs/path/silva-138.1-ssu-nr99-classifier.qza"
+
+gtdb:
+  version: "R214"
+  taxonomy: "/abs/path/gtdb_taxonomy.tsv"
+
+kraken2:
+  standard: "/abs/path/kraken2/standard"
+  humandb: "/abs/path/kraken2/human"
+
+card:
+  version: "X.Y"
+  protein_fasta: "/abs/path/card/proteins.fasta"
+  rgi_db: "/abs/path/card/rgi-db"
+
+megares:
+  fasta: "/abs/path/megares/megares.fasta"
+  annotations: "/abs/path/megares/annotations.tsv"
+
+resfinder:
+  abricate_db: "resfinder"
+
+pointfinder:
+  species: ["salmonella", "campylobacter", "escherichia_coli", "klebsiella_pneumoniae"]
+
+sarg:
+  fasta: "/abs/path/SARG.fasta"

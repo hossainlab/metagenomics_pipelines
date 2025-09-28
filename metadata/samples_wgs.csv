@@ -1,0 +1,2 @@
+sample_id,R1,R2,species
+ISO1,data/raw/ISO1_R1.fastq.gz,data/raw/ISO1_R2.fastq.gz,escherichia_coli

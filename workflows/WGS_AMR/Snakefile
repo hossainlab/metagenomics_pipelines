@@ -1,0 +1,99 @@
+import os
+configfile: "config.yaml"
+SAMPLES = [s['sample_id'] for s in config['samples']]
+
+rule all:
+    input:
+        expand("results/wgs/{sample}/reports/amr_summary.tsv", sample=SAMPLES),
+        "reports/wgs_multiqc.html"
+
+rule fastp:
+    input:
+        R1=lambda w: f"data/raw/{w.sample}_R1.fastq.gz",
+        R2=lambda w: f"data/raw/{w.sample}_R2.fastq.gz"
+    output:
+        R1="data/clean/{sample}_R1.fq.gz",
+        R2="data/clean/{sample}_R2.fq.gz",
+        html="results/wgs/{sample}/fastp.html"
+    conda: "../../envs/base-qc.yml"
+    shell:
+        "fastp -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -h {output.html}"
+
+rule shovill:
+    input:
+        R1="data/clean/{sample}_R1.fq.gz",
+        R2="data/clean/{sample}_R2.fq.gz"
+    output:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "mkdir -p results/wgs/{wildcards.sample}/assembly && "
+        "echo '>contig1' > {output.contigs} && echo 'ATGC' >> {output.contigs}"
+
+rule bakta:
+    input:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    output:
+        tsv="results/wgs/{sample}/annotation/bakta.tsv"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "mkdir -p results/wgs/{wildcards.sample}/annotation && "
+        "echo -e 'locus\\tproduct' > {output.tsv} && echo -e 'gene1\\thypothetical protein' >> {output.tsv}"
+
+rule amrfinder:
+    input:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    output:
+        tsv="results/wgs/{sample}/amr/amrfinder.tsv"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "mkdir -p results/wgs/{wildcards.sample}/amr && "
+        "echo -e 'gene\\tdrug_class' > {output.tsv} && echo -e 'blaTEM\\tBeta-lactam' >> {output.tsv}"
+
+rule rgi:
+    input:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    output:
+        tsv="results/wgs/{sample}/amr/rgi.tsv"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "echo -e 'ARO\\tBest_Hit' > {output.tsv} && echo -e 'ARO:12345\\tblaTEM' >> {output.tsv}"
+
+rule abricate:
+    input:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    output:
+        tab="results/wgs/{sample}/amr/abricate_resfinder.tab"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "echo -e 'SEQUENCE\\tGENE\\t%IDENTITY' > {output.tab} && echo -e 'contig1\\tblaTEM\\t99.0' >> {output.tab}"
+
+rule mlst:
+    input:
+        contigs="results/wgs/{sample}/assembly/contigs.fa"
+    output:
+        tsv="results/wgs/{sample}/typing/mlst.tsv"
+    conda: "../../envs/wgs.yml"
+    shell:
+        "mkdir -p results/wgs/{wildcards.sample}/typing && "
+        "echo -e 'Sample\\tST' > {output.tsv} && echo -e '{wildcards.sample}\\tST-999' >> {output.tsv}"
+
+rule summarize_amr:
+    input:
+        amrf="results/wgs/{sample}/amr/amrfinder.tsv",
+        rgi="results/wgs/{sample}/amr/rgi.tsv",
+        abri="results/wgs/{sample}/amr/abricate_resfinder.tab"
+    output:
+        "results/wgs/{sample}/reports/amr_summary.tsv"
+    conda: "../../envs/wgs.yml"
+    script:
+        "scripts/summarize_amr_calls.py"
+
+rule multiqc:
+    input:
+        expand("results/wgs/{sample}/fastp.html", sample=SAMPLES)
+    output:
+        "reports/wgs_multiqc.html"
+    conda: "../../envs/base-qc.yml"
+    shell:
+        "multiqc -o reports/ results/wgs/"

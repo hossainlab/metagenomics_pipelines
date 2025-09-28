@@ -1,0 +1,22 @@
+name: wgs-amr
+channels: [conda-forge, bioconda, defaults]
+dependencies:
+  - shovill
+  - spades
+  - unicycler
+  - flye
+  - racon
+  - medaka
+  - pilon
+  - bakta
+  - prokka
+  - mlst
+  - abricate
+  - amrfinderplus
+  - rgi
+  - mob-suite
+  - snippy
+  - iqtree
+  - mash
+  - quast
+  - checkm-genome

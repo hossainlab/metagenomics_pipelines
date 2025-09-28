@@ -1,0 +1,5 @@
+samples:
+  - {sample_id: S1}
+  - {sample_id: S2}
+card_protein: "resources/dbs/card/proteins.dmnd"
+host: "human"
